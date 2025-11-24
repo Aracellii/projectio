@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Rice Storage</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase JS CDN (ringan banget, cuma 12KB) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <header class="header">
+            <span>Report</span>
+            <span>Smart Rice Storage</span>
+            <div class="user-avatar"></div>
+        </header>
+
+        <div class="card card-capacity">
+            <h3>Capacity Report</h3>
+            <div class="capacity-inner">
+                <h1 class="value" id="capacity-value">0%</h1>
+                <p class="label">Filled</p>
+                <div class="capacity-bar" aria-hidden="true">
+                    <div class="capacity-fill" id="capacity-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-humidity">
+            <h3>Humidity Report</h3>
+            <h1 class="value" id="humidity-value">0%</h1>
+            <p class="label" id="humidity-label">Good</p>
+        </div>
+
+        <div class="card card-temp">
+            <h3>Temperature Report</h3>
+            <h1 class="value" id="temp-value">0°C</h1>
+            <p class="label" id="temp-label">Mild</p>
+        </div>
+
+        <div class="card card-status">
+            <div class="status-time">
+                <h2 id="time">00:00</h2>
+                <p id="date">Loading...</p>
+            </div>
+            <div class="status-fan">
+                <h2 id="fan-status">Fan is OFF</h2>
+            </div>
+            <div class="status-info">
+                <h2 id="status-info">Monitoring rice condition...</h2>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================== GANTI INI SESUAI PROJECT KAMU ==================
+        const SUPABASE_URL = 'https://ptfipvrrxehfjiavctrq.supabase.co'
+        const SUPABASE_ANON_KEY = 'sb_publishable_MGKF6j_H4lewfEB75rbE3g_p8yQMhrT' // GANTI DENGAN ANON KEY KAMU!
+        // =====================================================================
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+        // Ambil data terbaru (1 baris terakhir)
+        async function getLatestData() {
+            const { data, error } = await supabase
+                .from('data_sensor')
+                .select('*')
+                .order('timestamp', { ascending: false })
+                .limit(1)
+                .single()
+
+            if (error) {
+                console.error("Error ambil data:", error)
+                document.getElementById('status-info').innerText = "Connection failed!"
+                return
+            }
+
+            if (data) {
+                updateDashboard(data)
+            }
+        }
+
+        // Update semua elemen di dashboard
+        function updateDashboard(d) {
+            const kelembaban = parseFloat(d.kelembaban)
+            const suhu = parseFloat(d.suhu)
+            const kapasitas = parseInt(d.kapasitas_persen)
+
+            // Kapasitas
+            document.getElementById('capacity-value').innerText = kapasitas + "%"
+            document.getElementById('capacity-fill').style.width = kapasitas + "%"
+
+            // Kelembaban
+            document.getElementById('humidity-value').innerText = kelembaban.toFixed(1) + "%"
+            if (kelembaban < 40) {
+                document.getElementById('humidity-label').innerText = "Too Dry"
+                document.getElementById('humidity-label').style.color = "#e74c3c"
+            } else if (kelembaban > 70) {
+                document.getElementById('humidity-label').innerText = "Too Moist"
+                document.getElementById('humidity-label').style.color = "#e74c3c"
+            } else {
+                document.getElementById('humidity-label').innerText = "Good"
+                document.getElementById('humidity-label').style.color = "#2ecc71"
+            }
+
+            // Suhu
+            document.getElementById('temp-value').innerText = suhu.toFixed(1) + "°C"
+            if (suhu < 20) {
+                document.getElementById('temp-label').innerText = "Cool"
+            } else if (suhu > 30) {
+                document.getElementById('temp-label').innerText = "Hot"
+                document.getElementById('temp-label').style.color = "#e74c3c"
+            } else {
+                document.getElementById('temp-label').innerText = "Mild"
+                document.getElementById('temp-label').style.color = "#2ecc71"
+            }
+
+            // Kipas
+            if (kelembaban >= 90) {
+                document.getElementById('fan-status').innerText = "Fan is ON"
+                document.getElementById('fan-status').style.color = "#e74c3c"
+            } else {
+                document.getElementById('fan-status').innerText = "Fan is OFF"
+                document.getElementById('fan-status').style.color = "#95a5a6"
+            }
+
+            // Status info
+            if (kapasitas >= 90) {
+                document.getElementById('status-info').innerText = "Rice almost full!"
+            } else if (kelembaban > 70 || suhu > 30) {
+                document.getElementById('status-info').innerText = "Warning: Check rice condition!"
+            } else {
+                document.getElementById('status-info').innerText = "Your rice is in perfect condition!"
+            }
+        }
+
+        // Update jam real-time
+        function updateTime() {
+            const now = new Date()
+            document.getElementById('time').innerText = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', minute: '2-digit', hour12: false 
+            })
+            document.getElementById('date').innerText = now.toLocaleDateString('en-US', { 
+                weekday: 'long', day: 'numeric', month: 'long' 
+            })
+        }
+
+        // REALTIME LISTENER (INI YANG BIKIN DASHBOARD HIDUP!)
+        supabase
+            .channel('public:data_sensor')
+            .on('postgres_changes', { 
+                event: 'INSERT', 
+                schema: 'public', 
+                table: 'data_sensor' 
+            }, payload => {
+                console.log('Data baru masuk!', payload.new)
+                updateDashboard(payload.new)
+            })
+            .subscribe()
+
+        // Jalankan saat halaman dibuka
+        getLatestData()
+        updateTime()
+        setInterval(updateTime, 1000)
+        setInterval(getLatestData, 10000) // backup polling kalau realtime delay
+    </script>
+</body>
+</html>
