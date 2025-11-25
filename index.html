@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Rice Storage</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Supabase JS CDN (ringan banget, cuma 12KB) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
     <div class="dashboard-container">
         <header class="header">
             <span>Report</span>
@@ -55,10 +53,9 @@
     </div>
 
     <script>
-        // ================== GANTI INI SESUAI PROJECT KAMU ==================
+        //Supabase 
         const SUPABASE_URL = 'https://ptfipvrrxehfjiavctrq.supabase.co'
-        const SUPABASE_ANON_KEY = 'sb_publishable_MGKF6j_H4lewfEB75rbE3g_p8yQMhrT' // GANTI DENGAN ANON KEY KAMU!
-        // =====================================================================
+        const SUPABASE_ANON_KEY = 'sb_publishable_MGKF6j_H4lewfEB75rbE3g_p8yQMhrT' 
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
@@ -82,7 +79,7 @@
             }
         }
 
-        // Update semua elemen di dashboard
+        // Update dashboard
         function updateDashboard(d) {
             const kelembaban = parseFloat(d.kelembaban)
             const suhu = parseFloat(d.suhu)
@@ -147,7 +144,7 @@
             })
         }
 
-        // REALTIME LISTENER (INI YANG BIKIN DASHBOARD HIDUP!)
+        // Realtime Listener
         supabase
             .channel('public:data_sensor')
             .on('postgres_changes', { 
@@ -160,11 +157,10 @@
             })
             .subscribe()
 
-        // Jalankan saat halaman dibuka
         getLatestData()
         updateTime()
         setInterval(updateTime, 1000)
-        setInterval(getLatestData, 10000) // backup polling kalau realtime delay
+        setInterval(getLatestData, 1000) // delay
     </script>
 </body>
 </html>
