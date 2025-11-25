@@ -106,7 +106,8 @@
             document.getElementById('temp-value').innerText = suhu.toFixed(1) + "°C"
             if (suhu < 20) {
                 document.getElementById('temp-label').innerText = "Cool"
-            } else if (suhu > 30) {
+            } else if (suhu > 29) {
+                document.getElementById('fan-status').innerText = "Fan is ON"
                 document.getElementById('temp-label').innerText = "Hot"
                 document.getElementById('temp-label').style.color = "#e74c3c"
             } else {
@@ -133,7 +134,7 @@
             }
         }
 
-        // Update jam real-time
+        // Update jam 
         function updateTime() {
             const now = new Date()
             document.getElementById('time').innerText = now.toLocaleTimeString('en-US', { 
