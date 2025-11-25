@@ -106,8 +106,7 @@
             document.getElementById('temp-value').innerText = suhu.toFixed(1) + "°C"
             if (suhu < 20) {
                 document.getElementById('temp-label').innerText = "Cool"
-            } else if (suhu > 28) {
-                document.getElementById('fan-status').innerText = "Fan is ON"
+            } else if (suhu > 29) {
                 document.getElementById('temp-label').innerText = "Hot"
                 document.getElementById('temp-label').style.color = "#e74c3c"
             } else {
@@ -116,13 +115,13 @@
             }
 
             // Kipas
-            if (kelembaban >= 90) {
-                document.getElementById('fan-status').innerText = "Fan is ON"
-                document.getElementById('fan-status').style.color = "#e74c3c"
-            } else {
-                document.getElementById('fan-status').innerText = "Fan is OFF"
-                document.getElementById('fan-status').style.color = "#95a5a6"
-            }
+            if (kelembaban >= 90 || suhu > 28) {
+            document.getElementById('fan-status').innerText = "Fan is ON"
+            document.getElementById('fan-status').style.color = "#e74c3c"
+        } else {
+            document.getElementById('fan-status').innerText = "Fan is OFF"
+            document.getElementById('fan-status').style.color = "#95a5a6"
+        }
 
             // Status info
             if (kapasitas >= 90) {
