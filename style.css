@@ -29,7 +29,6 @@ body {
     animation: fadeIn 1s ease-in-out;
 }
 
-/* --- Efek Glassmorphism dengan Gradien --- */
 .card, .header {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
     backdrop-filter: blur(20px);
@@ -80,7 +79,6 @@ body {
     transform: scale(1.1);
 }
 
-/* --- Kartu Sensor --- */
 .card-capacity {
     grid-column: 1 / 1;
     grid-row: 2 / 4; /* Mengambil 2 baris */
